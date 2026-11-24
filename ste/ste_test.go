@@ -42,6 +42,8 @@ func TestCheck(t *testing.T) {
 		{"modal passive", "The panel must be removed.", Procedure, []Rule{Passive}},
 		{"passive with agent", "The valve is opened by the pilot.", Procedure, []Rule{Passive}},
 		{"state is not passive", "Make sure that the valve is closed.", Procedure, nil},
+		{"hyphenated word", "Turn off the no-ing rule.", Procedure, nil},
+		{"hyphenated -ing verb", "Use self-tightening nuts.", Procedure, []Rule{Ing}},
 		{"proper noun", "Return after Thanksgiving break.", Procedure, nil},
 		{"-ing at sentence start", "Turning the knob opens the valve.", Procedure, []Rule{Ing}},
 		{"allowed proper noun at sentence start", "Boeing builds the aircraft.", Procedure, nil},

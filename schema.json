@@ -2,80 +2,102 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SeanMcP/ste-check/main/schema.json",
   "title": "ste-check config",
-  "description": "Configuration for ste-check, an unofficial Simplified Technical English checker.",
+  "description": "The settings for ste-check, an unofficial checker for Simplified Technical English (STE).",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": {
       "type": "string",
-      "description": "The path or URL of this schema."
+      "description": "The location of the schema for this file. Your editor uses the schema to show help and errors."
     },
     "type": {
-      "description": "The default text type. Use -p or -d to change it for one run.",
+      "description": "The type of text to check when you do not use -p or -d. A procedure tells the reader what to do. A description gives information.",
       "enum": ["procedure", "description"],
       "default": "procedure"
     },
     "maxWords": {
-      "description": "The maximum number of words in a sentence, for each text type.",
+      "description": "The maximum number of words in a sentence, for each type of text.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "procedure": { "type": "integer", "minimum": 1, "default": 20 },
-        "description": { "type": "integer", "minimum": 1, "default": 25 }
+        "procedure": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "description": "The maximum number of words in a sentence of a procedure."
+        },
+        "description": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 25,
+          "description": "The maximum number of words in a sentence of a description."
+        }
       }
     },
     "rules": {
-      "description": "Turn rules on (true) or off (false). All rules are on by default.",
+      "description": "To disable a rule, set it to false. By default, all rules are on.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "max-sentence-length": {
           "type": "boolean",
           "default": true,
-          "description": "Sentences must not have more words than maxWords."
+          "description": "Flags sentences that have more words than the limit in maxWords."
         },
         "no-unapproved-words": {
           "type": "boolean",
           "default": true,
-          "description": "Flag complex words, idioms, and phrasal verbs, and suggest simpler alternatives."
+          "description": "Flags complex words, idioms, and phrasal verbs, and shows a simpler word to use."
         },
         "no-ing": {
           "type": "boolean",
           "default": true,
-          "description": "Flag -ing verb forms, such as \"turning\"."
+          "description": "Flags verbs that end in -ing, such as \"turning\"."
         },
         "no-passive": {
           "type": "boolean",
           "default": true,
-          "description": "Flag passive voice, such as \"must be removed\"."
+          "description": "Flags verbs in the passive voice, such as \"must be removed\"."
         },
         "no-contractions": {
           "type": "boolean",
           "default": true,
-          "description": "Flag contractions, such as \"don't\" or \"it's\"."
+          "description": "Flags contractions, such as \"don't\" and \"it's\"."
         },
         "no-perfect-tense": {
           "type": "boolean",
           "default": true,
-          "description": "Flag perfect tenses, such as \"have removed\"."
+          "description": "Flags verbs in a perfect tense, such as \"have removed\"."
         }
       }
     },
     "words": {
-      "description": "More words or phrases to flag, with the alternative to suggest. Example: { \"spin up\": \"start\" }",
+      "description": "More words or phrases to flag. For each one, give the word to use instead. Example: { \"spin up\": \"start\" }",
       "type": "object",
-      "additionalProperties": { "type": "string", "minLength": 1 }
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "description": "The word to use instead."
+      }
     },
     "allowIng": {
-      "description": "More -ing words to allow, such as \"caching\".",
+      "description": "Words that end in -ing that the no-ing rule does not flag, such as \"caching\".",
       "type": "array",
-      "items": { "type": "string", "pattern": "[iI][nN][gG]$" },
+      "items": {
+        "type": "string",
+        "pattern": "[iI][nN][gG]$",
+        "description": "A word that ends in -ing."
+      },
       "uniqueItems": true
     },
     "ignore": {
       "description": "Words or phrases that no rule flags, such as product names or \"kick off\".",
       "type": "array",
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "description": "A word or phrase."
+      },
       "uniqueItems": true
     }
   }

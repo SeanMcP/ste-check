@@ -13,14 +13,14 @@ ste-check --description < notes.txt
 
 ## Rules
 
-| Rule | Checks |
-|---|---|
-| `max-sentence-length` | A maximum of 20 words in each sentence of a procedure, and 25 in a description (`-d`) |
-| `no-unapproved-words` | Complex words, idioms, and phrasal verbs from an [unofficial word list](ste/words.txt), with simpler alternatives |
-| `no-ing` | `-ing` verb forms, except words on the [allow list](ste/ing-allowed.txt) (like "bearing" or "padding") and capitalized names after the first word |
-| `no-passive` | Passive voice, such as "must be removed" or "is opened by" |
-| `no-contractions` | Contractions, such as "don't" or "it's". Possessives like "the pump's" are not flagged. |
-| `no-perfect-tense` | Perfect tenses, such as "have removed" or "hasn't seen" |
+| Rule                  | Checks                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `max-sentence-length` | A maximum of 20 words in each sentence of a procedure, and 25 in a description (`-d`)                                                             |
+| `no-unapproved-words` | Complex words, idioms, and phrasal verbs from an [unofficial word list](ste/words.txt), with simpler alternatives                                 |
+| `no-ing`              | `-ing` verb forms, except words on the [allow list](ste/ing-allowed.txt) (like "bearing" or "padding") and capitalized names after the first word |
+| `no-passive`          | Passive voice, such as "must be removed" or "is opened by"                                                                                        |
+| `no-contractions`     | Contractions, such as "don't" or "it's". Possessives like "the pump's" are not flagged.                                                           |
+| `no-perfect-tense`    | Perfect tenses, such as "have removed" or "hasn't seen"                                                                                           |
 
 Exit codes: `0` no issues, `1` issues found, `2` usage or config error. To disable color, set `NO_COLOR`.
 
@@ -48,16 +48,18 @@ This writes `config.json` and `schema.json` to `~/.config/ste-check/`. It does n
 }
 ```
 
-| Key | Use |
-|---|---|
-| `type` | The default text type: `procedure` or `description`. `-p` and `-d` change it for one run. |
-| `maxWords` | The maximum number of words in a sentence, for each text type |
-| `rules` | To disable a rule, set it to `false`. All rules are enabled by default. |
-| `words` | More words or phrases to flag, with the alternative to suggest |
-| `allowIng` | More `-ing` words to allow |
-| `ignore` | Words or phrases that no rule flags, such as product names |
+| Key        | Use                                                                                       |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| `type`     | The default text type: `procedure` or `description`. `-p` and `-d` change it for one run. |
+| `maxWords` | The maximum number of words in a sentence, for each text type                             |
+| `rules`    | To disable a rule, set it to `false`. By default, all rules are on.                       |
+| `words`    | More words or phrases to flag, with the alternative to suggest                            |
+| `allowIng` | More `-ing` words to allow                                                                |
+| `ignore`   | Words or phrases that no rule flags, such as product names                                |
 
-All keys are optional. The schema gives autocomplete and error messages in editors such as VS Code. To use the schema without a local copy, set `$schema` to `https://raw.githubusercontent.com/SeanMcP/ste-check/main/schema.json`.
+All keys are optional. The schema gives autocomplete and error messages in editors such as VS Code.
+
+If you have no local copy, set `$schema` to `https://raw.githubusercontent.com/SeanMcP/ste-check/main/schema.json`. Note: the latest schema can differ from the installed version.
 
 ## Install
 

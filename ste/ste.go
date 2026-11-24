@@ -309,7 +309,8 @@ func (c *Checker) checkSentence(s string, t TextType) []Issue {
 // after the first word is a proper noun, such as "Thanksgiving" or "Beijing".
 func (c *Checker) isIngVerb(tok token, s string, i int) bool {
 	properNoun := i > 0 && unicode.IsUpper(rune(s[tok.start]))
-	return len(tok.word) > 4 && strings.HasSuffix(tok.word, "ing") && !c.ingAllowed[tok.word] && !properNoun
+	last := tok.word[strings.LastIndexByte(tok.word, '-')+1:] // "no-ing" -> "ing"
+	return len(last) > 4 && strings.HasSuffix(last, "ing") && !c.ingAllowed[tok.word] && !properNoun
 }
 
 func (c *Checker) unapprovedIssue(s string, start, end int, base string) Issue {
