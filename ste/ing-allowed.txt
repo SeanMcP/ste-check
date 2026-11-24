@@ -1,0 +1,105 @@
+# Words that end in "-ing" but are not -ing verb forms, or are technical names.
+# One lowercase word per line.
+#
+# Add a word only if it is almost always a noun or a name. Words that are also
+# common -ing verbs (mounting, sealing, routing, logging, binding, setting) stay flagged.
+
+# Not verb forms
+anything
+during
+everything
+nothing
+something
+thing
+according
+pending
+
+# Short words
+bring
+king
+ring
+sing
+sling
+spring
+sting
+string
+swing
+wing
+
+# Common nouns
+awning
+ceiling
+darling
+dumpling
+duckling
+earring
+evening
+herring
+inkling
+lightning
+meeting
+morning
+offspring
+pudding
+sapling
+seedling
+shilling
+sibling
+viking
+warning
+wedding
+
+# Aircraft and maintenance
+bearing
+building
+bushing
+casing
+coupling
+cowling
+decking
+fairing
+fitting
+flooring
+housing
+landing
+lining
+o-ring
+piping
+railing
+rigging
+shielding
+tubing
+wiring
+
+# Software and business
+billing
+funding
+heading
+hosting
+kerning
+licensing
+offboarding
+onboarding
+padding
+plumbing
+pricing
+staging
+tooling
+
+# Proper nouns, for when they start a sentence
+beijing
+boeing
+browning
+chongqing
+darjeeling
+fleming
+harding
+irving
+kipling
+nanjing
+peking
+reading
+sterling
+thanksgiving
+turing
+wyoming

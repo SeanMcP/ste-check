@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SeanMcP/ste-check/main/schema.json",
+  "title": "ste-check config",
+  "description": "Configuration for ste-check, an unofficial Simplified Technical English checker.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "The path or URL of this schema."
+    },
+    "type": {
+      "description": "The default text type. Use -p or -d to change it for one run.",
+      "enum": ["procedure", "description"],
+      "default": "procedure"
+    },
+    "maxWords": {
+      "description": "The maximum number of words in a sentence, for each text type.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "procedure": { "type": "integer", "minimum": 1, "default": 20 },
+        "description": { "type": "integer", "minimum": 1, "default": 25 }
+      }
+    },
+    "rules": {
+      "description": "Turn rules on (true) or off (false). All rules are on by default.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max-sentence-length": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sentences must not have more words than maxWords."
+        },
+        "no-unapproved-words": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flag complex words, idioms, and phrasal verbs, and suggest simpler alternatives."
+        },
+        "no-ing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flag -ing verb forms, such as \"turning\"."
+        },
+        "no-passive": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flag passive voice, such as \"must be removed\"."
+        },
+        "no-contractions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flag contractions, such as \"don't\" or \"it's\"."
+        },
+        "no-perfect-tense": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flag perfect tenses, such as \"have removed\"."
+        }
+      }
+    },
+    "words": {
+      "description": "More words or phrases to flag, with the alternative to suggest. Example: { \"spin up\": \"start\" }",
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "allowIng": {
+      "description": "More -ing words to allow, such as \"caching\".",
+      "type": "array",
+      "items": { "type": "string", "pattern": "[iI][nN][gG]$" },
+      "uniqueItems": true
+    },
+    "ignore": {
+      "description": "Words or phrases that no rule flags, such as product names or \"kick off\".",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  }
+}
