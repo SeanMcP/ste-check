@@ -23,7 +23,19 @@ func colors(on bool) palette {
 // report prints each sentence that has issues, then a summary. It returns the issue count.
 func report(w io.Writer, sentences []ste.Sentence, t ste.TextType, maxWords int, color bool) int {
 	c := colors(color)
-	issues, flagged := printSentences(w, sentences, color)
+	issues, flagged := 0, 0
+	for i, s := range sentences {
+		if len(s.Issues) == 0 {
+			continue
+		}
+		issues += len(s.Issues)
+		flagged++
+		fmt.Fprintf(w, "%s%3d%s  %s\n", c.dim, i+1, c.reset, highlight(s, c))
+		for _, issue := range s.Issues {
+			fmt.Fprintf(w, "     %s✗%s %s%-19s%s %s\n", c.red, c.reset, c.yellow, issue.Rule, c.reset, issue.Message)
+		}
+		fmt.Fprintln(w)
+	}
 
 	checked := fmt.Sprintf("Checked as a %s (max %d words per sentence).", t, maxWords)
 	if issues == 0 {
@@ -37,30 +49,11 @@ func report(w io.Writer, sentences []ste.Sentence, t ste.TextType, maxWords int,
 	return issues
 }
 
-// printSentences prints each sentence that has issues. It returns the issue
-// count and the number of sentences with issues.
-func printSentences(w io.Writer, sentences []ste.Sentence, color bool) (issues, flagged int) {
-	c := colors(color)
-	for i, s := range sentences {
-		if len(s.Issues) == 0 {
-			continue
-		}
-		issues += len(s.Issues)
-		flagged++
-		fmt.Fprintf(w, "%s%3d%s  %s\n", c.dim, i+1, c.reset, highlight(s, c, color))
-		for _, issue := range s.Issues {
-			fmt.Fprintf(w, "     %s✗%s %s%-19s%s %s\n", c.red, c.reset, c.yellow, issue.Rule, c.reset, issue.Message)
-		}
-		fmt.Fprintln(w)
-	}
-	return issues, flagged
-}
-
 // highlight marks flagged words with color, or with [brackets] when color is off.
-func highlight(s ste.Sentence, c palette, color bool) string {
-	open, close := "[", "]"
-	if color {
-		open, close = c.mark, c.reset
+func highlight(s ste.Sentence, c palette) string {
+	open, close := c.mark, c.reset
+	if open == "" {
+		open, close = "[", "]"
 	}
 
 	var b strings.Builder

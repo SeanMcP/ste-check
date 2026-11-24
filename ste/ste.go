@@ -19,7 +19,7 @@ const (
 	Description TextType = "description"
 )
 
-var DefaultMaxWords = map[TextType]int{Procedure: 20, Description: 25}
+var defaultMaxWords = map[TextType]int{Procedure: 20, Description: 25}
 
 type Rule string
 
@@ -72,16 +72,9 @@ type Checker struct {
 	ignore     [][]string // words and phrases that no rule flags
 }
 
-var defaultChecker = New(Options{})
-
-// Check checks text with the default options.
-func Check(text string, t TextType) []Sentence {
-	return defaultChecker.Check(text, t)
-}
-
 func New(o Options) *Checker {
 	c := &Checker{
-		maxWords:   maps.Clone(DefaultMaxWords),
+		maxWords:   maps.Clone(defaultMaxWords),
 		disabled:   maps.Clone(o.Disabled),
 		unapproved: map[string]string{},
 		wordForms:  map[string]string{},
@@ -157,8 +150,9 @@ var notParticiples = set("need", "speed", "feed", "seed", "weed", "deed", "reed"
 // Words that can come between "have" and a participle: "have not seen".
 var perfectAdverbs = set("not", "never", "already", "just", "also", "always", "recently", "ever")
 
-// Contractions that end in "'s" and are never possessive.
-var sContractions = map[string]string{
+// Contractions with a fixed full form. The ones that end in "'s" are never possessive.
+var fullContractions = map[string]string{
+	"can't": "cannot", "won't": "will not", "shan't": "shall not",
 	"it's": "it is", "that's": "that is", "there's": "there is", "here's": "here is",
 	"what's": "what is", "who's": "who is", "he's": "he is", "she's": "she is", "let's": "let us",
 }
@@ -198,8 +192,8 @@ func tokenize(s string) []token {
 	return tokens
 }
 
-// SplitSentences splits on end punctuation followed by a space, and on line breaks.
-func SplitSentences(text string) []string {
+// splitSentences splits on end punctuation followed by a space, and on line breaks.
+func splitSentences(text string) []string {
 	var out []string
 	add := func(s string) {
 		if s = strings.TrimSpace(s); wordRE.MatchString(s) {
@@ -221,7 +215,7 @@ func SplitSentences(text string) []string {
 
 func (c *Checker) Check(text string, t TextType) []Sentence {
 	var sentences []Sentence
-	for _, s := range SplitSentences(text) {
+	for _, s := range splitSentences(text) {
 		sentences = append(sentences, Sentence{Text: s, Issues: c.checkSentence(s, t)})
 	}
 	return sentences
@@ -231,15 +225,10 @@ func (c *Checker) checkSentence(s string, t TextType) []Issue {
 	tokens := tokenize(s)
 	skip := make([]bool, len(tokens)) // tokens inside an ignored word or phrase
 	for _, phrase := range c.ignore {
-		for i := 0; i+len(phrase) <= len(tokens); i++ {
-			if matches(tokens[i:i+len(phrase)], phrase) {
-				for j := i; j < i+len(phrase); j++ {
-					skip[j] = true
-				}
-			}
+		for _, i := range findAll(tokens, phrase) {
+			fill(skip[i : i+len(phrase)])
 		}
 	}
-	ignored := func(i int) bool { return skip[i] }
 	on := func(r Rule) bool { return !c.disabled[r] }
 	var issues []Issue
 
@@ -249,25 +238,21 @@ func (c *Checker) checkSentence(s string, t TextType) []Issue {
 	}
 
 	covered := make([]bool, len(tokens)) // tokens already inside a flagged phrase
-	for _, phrase := range c.phrases {
-		if !on(Word) {
-			break
-		}
-		n := len(phrase)
-		for i := 0; i+n <= len(tokens); i++ {
-			if !matches(tokens[i:i+n], phrase) || slices.Contains(covered[i:i+n], true) ||
-				slices.Contains(skip[i:i+n], true) {
-				continue
+	if on(Word) {
+		for _, phrase := range c.phrases {
+			n := len(phrase)
+			for _, i := range findAll(tokens, phrase) {
+				if slices.Contains(covered[i:i+n], true) || slices.Contains(skip[i:i+n], true) {
+					continue
+				}
+				fill(covered[i : i+n])
+				issues = append(issues, c.unapprovedIssue(s, tokens[i].start, tokens[i+n-1].end, strings.Join(phrase, " ")))
 			}
-			for j := i; j < i+n; j++ {
-				covered[j] = true
-			}
-			issues = append(issues, c.unapprovedIssue(s, tokens[i].start, tokens[i+n-1].end, strings.Join(phrase, " ")))
 		}
 	}
 
 	for i, tok := range tokens {
-		if ignored(i) {
+		if skip[i] {
 			continue
 		}
 		text := s[tok.start:tok.end]
@@ -286,7 +271,7 @@ func (c *Checker) checkSentence(s string, t TextType) []Issue {
 	}
 
 	for i := 0; on(Passive) && i+1 < len(tokens); i++ {
-		if isPassive(tokens, i) && !ignored(i) && !ignored(i+1) {
+		if isPassive(tokens, i) && !skip[i] && !skip[i+1] {
 			aux, part := tokens[i], tokens[i+1]
 			issues = append(issues, Issue{Passive, aux.start, part.end,
 				fmt.Sprintf("%q is passive voice. Say who does the action.", s[aux.start:part.end])})
@@ -294,7 +279,7 @@ func (c *Checker) checkSentence(s string, t TextType) []Issue {
 	}
 
 	for i := 0; on(Tense) && i < len(tokens); i++ {
-		if j, ok := perfectTense(tokens, i); ok && !ignored(i) && !ignored(j) {
+		if j, ok := perfectTense(tokens, i); ok && !skip[i] && !skip[j] {
 			start, end := tokens[i].start, tokens[j].end
 			issues = append(issues, Issue{Tense, start, end,
 				fmt.Sprintf("%q is a perfect tense. Use the simple past or present.", s[start:end])})
@@ -318,6 +303,17 @@ func (c *Checker) unapprovedIssue(s string, start, end int, base string) Issue {
 		fmt.Sprintf("Use %q, not %q.", c.unapproved[base], s[start:end])}
 }
 
+// findAll returns the index of each place where phrase starts in tokens.
+func findAll(tokens []token, phrase []string) []int {
+	var starts []int
+	for i := 0; i+len(phrase) <= len(tokens); i++ {
+		if matches(tokens[i:i+len(phrase)], phrase) {
+			starts = append(starts, i)
+		}
+	}
+	return starts
+}
+
 func matches(tokens []token, phrase []string) bool {
 	for i, w := range phrase {
 		if tokens[i].word != w {
@@ -325,6 +321,12 @@ func matches(tokens []token, phrase []string) bool {
 		}
 	}
 	return true
+}
+
+func fill(flags []bool) {
+	for i := range flags {
+		flags[i] = true
+	}
 }
 
 func contraction(text, full string, tok token) Issue {
@@ -340,10 +342,7 @@ func contraction(text, full string, tok token) Issue {
 func expandContraction(text string) (string, bool) {
 	text = strings.ReplaceAll(text, "’", "'")
 	lower := strings.ToLower(text)
-	full, ok := map[string]string{"can't": "cannot", "won't": "will not", "shan't": "shall not"}[lower]
-	if !ok {
-		full, ok = sContractions[lower]
-	}
+	full, ok := fullContractions[lower]
 	if !ok {
 		for _, c := range contractionSuffixes {
 			if strings.HasSuffix(lower, c.suffix) {

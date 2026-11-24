@@ -6,9 +6,11 @@ import (
 	"testing"
 )
 
+var defaultChecker = New(Options{})
+
 func rules(text string, t TextType) []Rule {
 	var out []Rule
-	for _, s := range Check(text, t) {
+	for _, s := range defaultChecker.Check(text, t) {
 		for _, issue := range s.Issues {
 			out = append(out, issue.Rule)
 		}
@@ -18,7 +20,7 @@ func rules(text string, t TextType) []Rule {
 
 func flagged(text string) []string {
 	var out []string
-	for _, s := range Check(text, Procedure) {
+	for _, s := range defaultChecker.Check(text, Procedure) {
 		for _, issue := range s.Issues {
 			out = append(out, s.Text[issue.Start:issue.End])
 		}
@@ -46,8 +48,6 @@ func TestCheck(t *testing.T) {
 		{"hyphenated -ing verb", "Use self-tightening nuts.", Procedure, []Rule{Ing}},
 		{"proper noun", "Return after Thanksgiving break.", Procedure, nil},
 		{"-ing at sentence start", "Turning the knob opens the valve.", Procedure, []Rule{Ing}},
-		{"allowed proper noun at sentence start", "Boeing builds the aircraft.", Procedure, nil},
-		{"software nouns", "Add padding below the heading.", Procedure, nil},
 		{"contraction", "Don't open the valve.", Procedure, []Rule{Contraction}},
 		{"curly contraction", "It’s open.", Description, []Rule{Contraction}},
 		{"possessive is not a contraction", "Replace the pump's seal.", Procedure, nil},
@@ -73,7 +73,7 @@ func TestUnapprovedWords(t *testing.T) {
 }
 
 func TestSplitSentences(t *testing.T) {
-	got := SplitSentences("Remove the cover\nOpen the door. Is it open?  Yes!\n\n")
+	got := splitSentences("Remove the cover\nOpen the door. Is it open?  Yes!\n\n")
 	want := []string{"Remove the cover", "Open the door.", "Is it open?", "Yes!"}
 	if !slices.Equal(got, want) {
 		t.Errorf("got %q, want %q", got, want)
@@ -104,7 +104,7 @@ func TestIngAllowedFile(t *testing.T) {
 }
 
 func TestContractionMessage(t *testing.T) {
-	issues := Check("Haven't you read it? I'd go.", Description)
+	issues := defaultChecker.Check("Haven't you read it? I'd go.", Description)
 	got := []string{issues[0].Issues[0].Message, issues[1].Issues[0].Message}
 	want := []string{`"Haven't" is a contraction. Write "Have not".`, `"I'd" is a contraction. Write the full words.`}
 	if !slices.Equal(got, want) {

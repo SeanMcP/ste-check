@@ -11,30 +11,22 @@ echo "Close the valve." | ste-check
 ste-check --description < notes.txt
 ```
 
+Exit codes: `0` no issues, `1` issues found, `2` usage or config error. To disable color, set `NO_COLOR`.
+
 ## Rules
 
-| Rule                  | Checks                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `max-sentence-length` | A maximum of 20 words in each sentence of a procedure, and 25 in a description (`-d`)                                                             |
-| `no-unapproved-words` | Complex words, idioms, and phrasal verbs from an [unofficial word list](ste/words.txt), with simpler alternatives                                 |
-| `no-ing`              | `-ing` verb forms, except words on the [allow list](ste/ing-allowed.txt) (like "bearing" or "padding") and capitalized names after the first word |
-| `no-passive`          | Passive voice, such as "must be removed" or "is opened by"                                                                                        |
-| `no-contractions`     | Contractions, such as "don't" or "it's". Possessives like "the pump's" are not flagged.                                                           |
-| `no-perfect-tense`    | Perfect tenses, such as "have removed" or "hasn't seen"                                                                                           |
-
-Exit codes: `0` no issues, `1` issues found, `2` usage or config error. To disable color, set `NO_COLOR`.
+| Rule | Checks |
+| --- | --- |
+| `max-sentence-length` | More than 20 words in a procedure sentence, or 25 in a description (`-d`) |
+| `no-unapproved-words` | Words and phrases from an [unofficial list](ste/words.txt), with simpler alternatives |
+| `no-ing` | `-ing` verbs, except words on the [allow list](ste/ing-allowed.txt) and capitalized names |
+| `no-passive` | Passive voice, such as "must be removed" |
+| `no-contractions` | Contractions, such as "don't". Possessives are not flagged. |
+| `no-perfect-tense` | Perfect tenses, such as "have removed" |
 
 ## Configuration
 
-`ste-check` reads `~/.config/ste-check/config.json` if it exists. To use a different file, add `--config path/to/config.json`.
-
-To make a starter config, run:
-
-```sh
-ste-check --init
-```
-
-This writes `config.json` and `schema.json` to `~/.config/ste-check/`. It does not replace a `config.json` that already exists. After you update `ste-check`, run it again to get the latest schema.
+`ste-check` reads `~/.config/ste-check/config.json` if it exists, or the file you give with `--config`. To write a starter config and its schema there, run `ste-check --init`. It keeps a `config.json` that exists. Run it again after an update to get the latest schema.
 
 ```json
 {
@@ -48,36 +40,17 @@ This writes `config.json` and `schema.json` to `~/.config/ste-check/`. It does n
 }
 ```
 
-| Key        | Use                                                                                       |
-| ---------- | ----------------------------------------------------------------------------------------- |
-| `type`     | The default text type: `procedure` or `description`. `-p` and `-d` change it for one run. |
-| `maxWords` | The maximum number of words in a sentence, for each text type                             |
-| `rules`    | To disable a rule, set it to `false`. By default, all rules are on.                       |
-| `words`    | More words or phrases to flag, with the alternative to suggest                            |
-| `allowIng` | More `-ing` words to allow                                                                |
-| `ignore`   | Words or phrases that no rule flags, such as product names                                |
-
-All keys are optional. The schema gives autocomplete and error messages in editors such as VS Code.
-
-If you have no local copy, set `$schema` to `https://raw.githubusercontent.com/SeanMcP/ste-check/main/schema.json`. Note: the latest schema can differ from the installed version.
+All keys are optional. [`schema.json`](schema.json) tells what each key does, and gives autocomplete in editors such as VS Code.
 
 ## Install
 
-Install [Go](https://go.dev/doc/install) (`brew install go` on macOS). Then install the binary in a directory that is on your `PATH`:
+Install [Go](https://go.dev/doc/install), then run:
 
 ```sh
 GOBIN="$HOME/.local/bin" go install github.com/SeanMcP/ste-check@latest
 ```
 
-To install from a clone of this repo, run `GOBIN="$HOME/.local/bin" go install .` in the repo directory. After you change the code, run it again.
-
-To make sure that it worked, run `which ste-check`. If you get no output, add the directory to your `PATH` in `~/.zshrc`:
-
-```sh
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-To uninstall, run `rm "$HOME/.local/bin/ste-check"`.
+Make sure that `~/.local/bin` is on your `PATH`. From a clone, run `GOBIN="$HOME/.local/bin" go install .` after each change.
 
 ## Develop
 
@@ -86,10 +59,8 @@ go test ./...
 go run . "Text to check."
 ```
 
-To flag a word, add a line to `ste/words.txt` in the format `unapproved = alternative`. Single words also match common forms, so `verify` also matches "verified". The tests make sure that no alternative is itself on the list.
+- To flag a word, add `unapproved = alternative` to `ste/words.txt`. Single words also match common forms ("verify" matches "verified").
+- To allow an `-ing` word, add it in lowercase to `ste/ing-allowed.txt`. Add only words that are almost always nouns or names.
+- If you add or rename a rule, also update `schema.json`.
 
-To allow an `-ing` word, add it in lowercase to `ste/ing-allowed.txt`. Add a word only if it is almost always a noun or a name.
-
-If you add or rename a rule, also update `schema.json`. A test makes sure that they match.
-
-The checker is in `ste/ste.go`.
+Tests check that no alternative is itself on the list, and that the schema matches the rules.

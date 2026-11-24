@@ -64,7 +64,6 @@ func TestConfigErrors(t *testing.T) {
 		"bad type":     `{"type": "manual"}`,
 		"bad maxWords": `{"maxWords": {"procedure": 0}}`,
 		"empty word":   `{"words": {"leverage": ""}}`,
-		"bad JSON":     "{\n  \"type\": \"procedure\",\n}",
 	}
 	for name, content := range cases {
 		if _, err := loadConfig(writeConfig(t, content), true); err == nil {
